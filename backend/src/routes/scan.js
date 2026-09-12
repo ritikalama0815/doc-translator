@@ -7,9 +7,9 @@ import { getConfig } from "../db.js";
 
 const SAMPLE = {
   patientName: null,
-  doctorName: "Dr. A. Kapoor",
+  doctorName: "Dr. Smith",
   date: "2026-09-10",
-  notes: "Sample slip for trying the desk without a photo.",
+  notes: "sample slip for trying pepema",
   medications: [
     {
       name: "amoxicillin",

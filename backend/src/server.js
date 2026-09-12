@@ -65,5 +65,5 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`MediScan backend on http://localhost:${PORT}`);
+  console.log(`translator backend OK http://localhost:${PORT}`);
 });

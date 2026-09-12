@@ -281,7 +281,7 @@ export function ruleBasedSymptomReply(text) {
 
   return {
     reply:
-      "Hi, how can I help you today? I can offer general, non-diagnostic pointers. Tell me the main symptom, how long it's been going on, and anything scary (breathing trouble, chest pain, fainting, rash with fever). If you feel very unwell, skip the app and talk to a clinician.",
+      "Hi, I can offer general, non-diagnostic medical pointers only. Tell me the main symptom, how long it's been going on, and anything scary (breathing trouble, chest pain, fainting, rash with fever). If you feel very unwell, skip the app and talk to a clinician.",
     urgency: "see-doctor",
     seeADoctorIf: ["You feel worse quickly.", "You are unsure and symptoms persist."],
     selfCare: ["Write down when it started and what you've already tried."],
