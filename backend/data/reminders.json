@@ -1,0 +1,15 @@
+[
+  {
+    "id": "139f9489-0f16-46f0-bc87-0e257dc3dfdc",
+    "medicationName": "cetamol",
+    "strength": null,
+    "time": "00:00",
+    "frequency": "once daily",
+    "enabled": true,
+    "takenOn": {
+      "2026-09-11": true
+    },
+    "prescriptionId": null,
+    "lastFiredOn": "2026-09-11"
+  }
+]
