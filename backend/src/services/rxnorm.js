@@ -1,3 +1,4 @@
+// Check a guessed drug name against NIH RxNorm and a light openFDA label.
 const RXNAV = "https://rxnav.nlm.nih.gov/REST";
 const OPENFDA = "https://api.fda.gov/drug/label.json";
 

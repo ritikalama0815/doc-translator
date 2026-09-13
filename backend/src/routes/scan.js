@@ -1,3 +1,4 @@
+// OCR a slip photo (or return the built-in sample), then structure + explain it.
 import { Router } from "express";
 import { v4 as uuid } from "uuid";
 import { extractText, publicImageUrl } from "../services/ocr.js";

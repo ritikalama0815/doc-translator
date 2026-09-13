@@ -8,6 +8,7 @@ const STARTER = {
     "Hi there, I can talk through everyday symptoms in general terms. If something feels severe (chest pain, trouble breathing, fainting, a scary rash), please get real-world care now.",
 };
 
+// General symptom chat. Not a diagnosis — red flags show an urgent banner.
 export default function Symptoms() {
   const [sessionId, setSessionId] = useState(null);
   const [messages, setMessages] = useState([STARTER]);

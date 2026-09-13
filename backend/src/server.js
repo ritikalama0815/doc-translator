@@ -1,3 +1,4 @@
+// Express entry: CORS, JSON, uploads, and the /api routers.
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -18,6 +19,7 @@ import { DISCLAIMER } from "./services/safety.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8787);
 
+// Store each upload under a unique name so two "slip.png" files do not collide.
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
   filename: (_req, file, cb) => {

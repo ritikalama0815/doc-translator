@@ -1,3 +1,4 @@
+// GET/POST local API keys and OCR engine. Never sends key values back to the client.
 import { Router } from "express";
 import { getConfig, saveConfig } from "../db.js";
 import { llmStatus } from "../services/llm.js";

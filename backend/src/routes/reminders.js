@@ -1,3 +1,4 @@
+// CRUD for reminder times, plus /due which the desktop app polls.
 import { Router } from "express";
 import { v4 as uuid } from "uuid";
 import { listReminders, saveReminders, dueReminders, markFired, markTaken } from "../services/scheduler.js";
@@ -5,6 +6,7 @@ import { listReminders, saveReminders, dueReminders, markFired, markTaken } from
 const router = Router();
 
 router.get("/due", (_req, res) => {
+  // Mark fired so the same minute does not notify twice.
   const now = new Date();
   const due = dueReminders(now);
   if (due.length) {

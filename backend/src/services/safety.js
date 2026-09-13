@@ -1,5 +1,6 @@
+// Shared disclaimer plus keyword red-flag detection for symptom chat.
 export const DISCLAIMER =
-  "MediScan is a reading and reminder helper, not a doctor. It does not diagnose, prescribe, or replace a clinician or pharmacist.";
+  "this app is a reading and reminder helper, not a doctor. It does not diagnose, prescribe, or replace a clinician or pharmacist.";
 
 export function detectRedFlags(text) {
   const t = (text || "").toLowerCase();

@@ -1,3 +1,5 @@
+// Talks to the Express backend. Electron uses 8787; Vite proxies /api in the browser.
+
 const desktop = window.desktop;
 export const API = desktop?.apiBase && !import.meta.env.DEV ? desktop.apiBase : "";
 

@@ -1,3 +1,4 @@
+// Symptom chat sessions (in-memory). Red flags can raise urgency.
 import { Router } from "express";
 import { v4 as uuid } from "uuid";
 import { symptomReply } from "../services/llm.js";

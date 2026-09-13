@@ -1,5 +1,6 @@
-import { Icon, Pip } from "./Mascot.jsx";
+import { Icon } from "./Icons.jsx";
 
+// Left-rail destinations. `id` is the App view key.
 const NAV = [
   { id: "home", label: "Home", icon: "home" },
   { id: "scan", label: "Scan slip", icon: "scan" },
@@ -9,13 +10,14 @@ const NAV = [
   { id: "settings", label: "Settings", icon: "gear" },
 ];
 
+// Brand column: Pepema, page links, and backend status.
 export default function Sidebar({ view, onChange, connected }) {
   return (
     <aside className="sidebar">
       <div className="mascot-wrap">
-        <Pip size={58} />
+        <img className="mascot-img" src="/images/mascot.png" alt="Pepema the medicine bottle mascot" width="112" height="112" />
         <div>
-          <h1>doctor's translator</h1>
+          <h1>PEPEMASTER</h1>
           <p>medicinal translator</p>
         </div>
       </div>

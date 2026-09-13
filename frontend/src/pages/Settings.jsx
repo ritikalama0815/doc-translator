@@ -1,6 +1,7 @@
 import { useState } from "react";
 import DisclaimerBanner from "../components/DisclaimerBanner.jsx";
 
+// Local keys for OCR and LLM. Blank fields keep whatever is already stored.
 export default function Settings({ config, onSave }) {
   const [form, setForm] = useState({
     googleVisionKey: "",

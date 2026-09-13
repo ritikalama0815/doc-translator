@@ -1,6 +1,6 @@
 import DisclaimerBanner from "../components/DisclaimerBanner.jsx";
-import { Pip } from "../components/Mascot.jsx";
 
+// Saved slips: each card lists medicines and RxNorm check status.
 export default function Prescriptions({ items, onOpenReminders, onDelete }) {
   return (
     <div className="page">
@@ -8,7 +8,7 @@ export default function Prescriptions({ items, onOpenReminders, onDelete }) {
       <h2 className="page-title">prescription database</h2>
       {items.length === 0 ? (
         <div className="empty card">
-          <Pip />
+          <img className="mascot-img" src="/images/mascot.png" alt="Pepema the medicine bottle mascot" width="110" height="110" />
           <p>the database is empty currently.</p>
         </div>
       ) : (

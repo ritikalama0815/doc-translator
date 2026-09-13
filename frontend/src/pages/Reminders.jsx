@@ -1,9 +1,9 @@
 import { useState } from "react";
 import DisclaimerBanner from "../components/DisclaimerBanner.jsx";
-import { Pip } from "../components/Mascot.jsx";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+// Daily medicine times: add, toggle, mark taken, or delete.
 export default function Reminders({ items, onToggle, onTaken, onAdd, onDelete }) {
   const [name, setName] = useState("");
   const [time, setTime] = useState("08:00");
@@ -13,7 +13,6 @@ export default function Reminders({ items, onToggle, onTaken, onAdd, onDelete })
     <div className="page">
       <DisclaimerBanner />
       <h2 className="page-title">Reminders</h2>
-
 
       <form
         className="card row"
@@ -37,7 +36,7 @@ export default function Reminders({ items, onToggle, onTaken, onAdd, onDelete })
 
       {items.length === 0 ? (
         <div className="empty card">
-          <Pip />
+          <img className="mascot-img" src="/images/mascot.png" alt="Pepema the medicine bottle mascot" width="110" height="110" />
           <p>no reminders set</p>
         </div>
       ) : (

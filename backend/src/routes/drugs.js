@@ -1,3 +1,4 @@
+// Drug name lookup: local common list + RxNorm.
 import { Router } from "express";
 import { validateDrug } from "../services/rxnorm.js";
 import { closestDrug } from "../data/drugs-common.js";

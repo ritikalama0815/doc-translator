@@ -1,3 +1,4 @@
+/* App-wide palette, layout, and component styles for Pepema. */
 :root {
   --cream: #f4efe4;
   --paper: #fffaf1;
@@ -14,7 +15,7 @@
   --danger: #d45d5d;
   --shadow: 0 18px 40px rgba(90, 54, 40, 0.12);
   --radius: 28px;
-  --sidebar: 248px;
+  --sidebar: 268px;
 }
 
 * { 
@@ -94,7 +95,29 @@ button, input, textarea, select { font-family: inherit; }
   flex-direction: column;
   min-height: 0;
 }
-.mascot-wrap { display: flex; gap: 12px; align-items: center; margin-bottom: 22px; }
+.mascot-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+/* Pixel bottle art — keep it crisp when scaled up. */
+.mascot-img {
+  display: block;
+  width: 112px;
+  height: 112px;
+  object-fit: contain;
+  border-radius: 22px;
+  flex-shrink: 0;
+  background: #fffaf1;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.mascot-img.mascot-lg {
+  width: 140px;
+  height: 140px;
+}
 .mascot-wrap h1 {
   font-family: "VT323", monospace;
   font-size: 28px;
@@ -314,6 +337,11 @@ h2.page-title {
   padding: 10px 14px;
   font-size: 13px;
   margin-bottom: 16px;
+}
+.prescription-title {
+  font-family: "VT323", monospace;
+  font-size: 26px;
+  margin: 8px 0 6px;
 }
 
 .reminder-list { display: grid; gap: 10px; }

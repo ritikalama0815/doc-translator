@@ -1,8 +1,8 @@
 import { useState } from "react";
 import DisclaimerBanner from "../components/DisclaimerBanner.jsx";
-import { Pip } from "../components/Mascot.jsx";
 import { api } from "../api.js";
 
+// Upload or drop a slip photo, then save the read result as reminders.
 export default function Scan({ onSaved }) {
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -25,6 +25,7 @@ export default function Scan({ onSaved }) {
     }
   }
 
+  // Persist the structured slip and jump to the reminder list.
   async function saveAndRemind() {
     if (!result) return;
     setBusy(true);
@@ -68,7 +69,7 @@ export default function Scan({ onSaved }) {
               hidden
               onChange={(e) => handleFile(e.target.files?.[0])}
             />
-            <Pip size={84} />
+            <img className="mascot-img mascot-lg" src="/images/mascot.png" alt="Pepema the medicine bottle mascot" width="140" height="140" />
             <h3>{busy ? "Reading the scribbles…" : "drop a prescription picture"}</h3>
             <p className="muted">or click to choose one from your computer</p>
           </label>

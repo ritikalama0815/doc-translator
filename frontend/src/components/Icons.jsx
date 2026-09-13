@@ -10,8 +10,7 @@ export function Pip({ size = 64 }) {
       <circle cx="54" cy="40" r="4" fill="#f3d57a" />
     </svg>
   );
-}
-
+}// Small stroke icons for the sidebar. `name` picks which glyph to draw.
 export function Icon({ name }) {
   const common = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" };
   if (name === "home") {
@@ -53,6 +52,7 @@ export function Icon({ name }) {
       </svg>
     );
   }
+  // Settings / fallback gear-style mark.
   return (
     <svg viewBox="0 0 24 24" {...common}>
       <circle cx="12" cy="12" r="8" />
@@ -60,3 +60,4 @@ export function Icon({ name }) {
     </svg>
   );
 }
+

@@ -9,6 +9,7 @@ import Reminders from "./pages/Reminders.jsx";
 import Settings from "./pages/Settings.jsx";
 import { api } from "./api.js";
 
+// Root shell: which page is open, backend health, and reminder pings.
 export default function App() {
   const [view, setView] = useState("home");
   const [connected, setConnected] = useState(false);
@@ -35,6 +36,7 @@ export default function App() {
 
   useEffect(() => {
     refresh();
+    // Check due reminders every 20s and fire a desktop/browser notification.
     const timer = setInterval(async () => {
       try {
         const due = await api.due();

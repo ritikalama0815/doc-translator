@@ -1,3 +1,4 @@
+// Reminder persistence and "is this due right now?" checks.
 import { readJson, writeJson } from "../db.js";
 
 const EMPTY = [];
