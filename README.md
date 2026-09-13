@@ -3,7 +3,7 @@
 A desktop app that reads messy prescriptions, explains them in plain language, checks drug names against **RxNorm / OpenFDA**, chats about general symptoms with safety rails, and rings local reminders.
 
 ```
-mediscan/
+doctor-translation/
   backend/     OCR, LLM structuring, RxNorm, reminders
   frontend/    Electron + React GUI
 ```
