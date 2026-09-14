@@ -1,3 +1,14 @@
+/**
+ * @fileoverview Local drug vocabulary, dosing-frequency map, and fuzzy name matching
+ * used when OCR text is too messy to send straight to RxNorm.
+ * @module data/drugs-common
+ */
+
+/**
+ * Generic and common brand names (including names often seen on South Asian slips)
+ * that {@link closestDrug} can snap a noisy OCR guess onto.
+ * @type {string[]}
+ */
 export const COMMON_DRUGS = [
   "acetaminophen",
   "paracetamol",
@@ -84,6 +95,10 @@ export const COMMON_DRUGS = [
   "thyroxine",
 ];
 
+/**
+ * Latin / English frequency phrases mapped to a label and suggested 24h reminder times.
+ * @type {Object<string, {label: string, times: string[]}>}
+ */
 export const FREQUENCY_MAP = {
   qd: { label: "once daily", times: ["08:00"] },
   od: { label: "once daily", times: ["08:00"] },
@@ -113,6 +128,13 @@ export const FREQUENCY_MAP = {
   "every 12 hours": { label: "every 12 hours", times: ["08:00", "20:00"] },
 };
 
+/**
+ * Parse an Indian morning-afternoon-night schedule such as `1-0-1` or `1/1/1`.
+ * A `1` means a dose at that slot; `0` means skip it.
+ *
+ * @param {string} token Text that should be only the three-part schedule.
+ * @returns {{label: string, times: string[], notation: string}|null} Schedule, or `null` if the token is not `0/1-0/1-0/1`.
+ */
 export function timesFromIndianSchedule(token) {
   const m = String(token).trim().match(/^([01])\s*[-/]\s*([01])\s*[-/]\s*([01])$/);
   if (!m) return null;
@@ -126,6 +148,12 @@ export function timesFromIndianSchedule(token) {
   return { label, times, notation: `${m[1]}-${m[2]}-${m[3]}` };
 }
 
+/**
+ * Case-insensitive Levenshtein edit distance between two strings.
+ * @param {string} a
+ * @param {string} b
+ * @returns {number} Number of insertions, deletions, and substitutions needed to turn `a` into `b`.
+ */
 export function levenshtein(a, b) {
   const s = a.toLowerCase();
   const t = b.toLowerCase();
@@ -143,6 +171,14 @@ export function levenshtein(a, b) {
   return dp[s.length][t.length];
 }
 
+/**
+ * Find the closest {@link COMMON_DRUGS} entry for a noisy OCR name.
+ * Exact substring matches win immediately; otherwise the best Levenshtein score
+ * is kept only if it is within `max(2, 40% of query length)`.
+ *
+ * @param {string|null|undefined} name Raw name or line fragment.
+ * @returns {{name: string, score: number}|null} Match (`score` 0 is exact/contained), or `null`.
+ */
 export function closestDrug(name) {
   const q = (name || "").toLowerCase().replace(/[^a-z0-9 +.-]/g, " ").trim();
   if (!q) return null;

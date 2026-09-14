@@ -1,4 +1,10 @@
-// Symptom chat sessions (in-memory). Red flags can raise urgency.
+/**
+ * @fileoverview Symptom chat sessions (held in memory). Red flags from
+ * {@link module:services/safety} can raise the reply urgency even if the model
+ * answered as self-care.
+ * @module routes/chat
+ */
+
 import { Router } from "express";
 import { v4 as uuid } from "uuid";
 import { symptomReply } from "../services/llm.js";
@@ -60,4 +66,5 @@ router.post("/", async (req, res) => {
   }
 });
 
+/** Express router mounted at `/api/chat`. */
 export default router;

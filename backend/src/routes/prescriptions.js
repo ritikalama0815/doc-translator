@@ -1,4 +1,8 @@
-// Saved prescriptions plus "make reminders from this slip".
+/**
+ * @fileoverview CRUD for saved prescriptions, plus "create reminder slots from this slip".
+ * @module routes/prescriptions
+ */
+
 import { Router } from "express";
 import { v4 as uuid } from "uuid";
 import { readJson, writeJson } from "../db.js";
@@ -55,4 +59,5 @@ router.post("/:id/reminders", (req, res) => {
   res.json(created);
 });
 
+/** Express router mounted at `/api/prescriptions`. */
 export default router;

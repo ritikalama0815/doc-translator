@@ -1,4 +1,9 @@
-// GET/POST local API keys and OCR engine. Never sends key values back to the client.
+/**
+ * @fileoverview GET/POST local API keys and OCR engine.
+ * Key *values* are never sent back to the client — only booleans for "is this configured?".
+ * @module routes/config
+ */
+
 import { Router } from "express";
 import { getConfig, saveConfig } from "../db.js";
 import { llmStatus } from "../services/llm.js";
@@ -39,4 +44,5 @@ router.post("/", (req, res) => {
   });
 });
 
+/** Express router mounted at `/api/config`. */
 export default router;

@@ -1,4 +1,10 @@
-// Express entry: CORS, JSON, uploads, and the /api routers.
+/**
+ * @fileoverview Express entry: CORS, JSON, image uploads, and the `/api` routers.
+ * Listens on `process.env.PORT` or **8787**. Uploads are stored under unique names
+ * so two files both called `slip.png` do not overwrite each other.
+ * @module server
+ */
+
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -17,9 +23,13 @@ import { llmStatus } from "./services/llm.js";
 import { DISCLAIMER } from "./services/safety.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+/** @type {number} HTTP port; override with `PORT`. */
 const PORT = Number(process.env.PORT || 8787);
 
-// Store each upload under a unique name so two "slip.png" files do not collide.
+/**
+ * Disk storage that names each upload `{uuid}{ext}` so two `slip.png` files do not collide.
+ * @type {import("multer").StorageEngine}
+ */
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
   filename: (_req, file, cb) => {

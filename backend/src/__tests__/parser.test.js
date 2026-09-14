@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Jest tests for {@link module:services/parser}.
+ *
+ * What this file does:
+ * - Parses realistic slip lines (Amoxicillin `1-0-1`, Ibuprofen BID, HS, before meals,
+ *   multi-line metformin + atorvastatin) into name, dose, times, duration, and instructions.
+ * - Ensures duplicate drug names on a slip are kept once.
+ * - Ensures unreadable OCR still returns a "could not read" placeholder, and blank text
+ *   returns no medications.
+ * - Checks `buildPlainLanguage` for empty vs filled medication lists.
+ * - Checks `scheduleFromMedication` emits one reminder slot per time, defaulting to 08:00.
+ */
 import {
   buildPlainLanguage,
   parsePrescriptionText,

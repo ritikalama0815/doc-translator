@@ -1,3 +1,12 @@
+/**
+ * @fileoverview Jest tests for {@link module:services/safety}.
+ *
+ * What this file does:
+ * - Confirms the shared disclaimer tells people this is not a doctor.
+ * - Feeds symptom phrases into `detectRedFlags` and checks the labels
+ *   (chest pain, breathing, stroke, self-harm, allergy, bleeding, pregnancy, infant).
+ * - Checks `isCrisis`: emergency labels raise crisis; infant/pregnancy labels alone do not.
+ */
 import { DISCLAIMER, detectRedFlags, isCrisis } from "../services/safety.js";
 
 describe("DISCLAIMER", () => {

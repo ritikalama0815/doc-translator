@@ -1,13 +1,42 @@
-// Check a guessed drug name against NIH RxNorm and a light openFDA label.
+/**
+ * @fileoverview Check a guessed drug name against NIH RxNorm (RxNav) and a light
+ * openFDA label. Failures are returned as `matched: false` so a downed network
+ * never blocks scanning a slip.
+ * @module services/rxnorm
+ */
+
 const RXNAV = "https://rxnav.nlm.nih.gov/REST";
 const OPENFDA = "https://api.fda.gov/drug/label.json";
 
+/**
+ * @typedef {object} DrugValidation
+ * @property {string} query Original name that was looked up.
+ * @property {boolean} matched Whether RxNorm returned an RxCUI.
+ * @property {string|null} rxcui
+ * @property {string|null} displayName
+ * @property {string|null} synonym
+ * @property {string|null} tty Term type from RxNorm.
+ * @property {number|null} [score]
+ * @property {{brand: string|null, generic: string|null, purpose: string|null}|null} openFda
+ * @property {string} message Status for the UI.
+ */
+
+/**
+ * GET JSON, or `null` on a non-OK response.
+ * @param {string} url
+ * @returns {Promise<object|null>}
+ */
 async function getJson(url) {
   const res = await fetch(url, { headers: { accept: "application/json" } });
   if (!res.ok) return null;
   return res.json();
 }
 
+/**
+ * Approximate-match `name` in RxNorm, then optionally attach an openFDA purpose snippet.
+ * @param {string} name
+ * @returns {Promise<DrugValidation>}
+ */
 export async function validateDrug(name) {
   const query = (name || "").trim();
   if (!query || /could not read/i.test(query)) {
@@ -80,6 +109,11 @@ export async function validateDrug(name) {
   }
 }
 
+/**
+ * Run {@link validateDrug} on each medication and attach a `validation` field.
+ * @param {Array<{name: string}>} medications
+ * @returns {Promise<Array<object>>}
+ */
 export async function validateMedications(medications) {
   const out = [];
   for (const med of medications) {

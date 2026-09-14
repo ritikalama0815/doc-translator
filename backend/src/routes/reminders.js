@@ -1,4 +1,9 @@
-// CRUD for reminder times, plus /due which the desktop app polls.
+/**
+ * @fileoverview CRUD for reminder times, plus `GET /due` which the desktop app polls.
+ * A due reminder is marked fired in the same request so the same minute does not notify twice.
+ * @module routes/reminders
+ */
+
 import { Router } from "express";
 import { v4 as uuid } from "uuid";
 import { listReminders, saveReminders, dueReminders, markFired, markTaken } from "../services/scheduler.js";
@@ -55,4 +60,5 @@ router.delete("/:id", (req, res) => {
   res.json({ ok: true });
 });
 
+/** Express router mounted at `/api/reminders`. */
 export default router;

@@ -1,4 +1,9 @@
-// OCR a slip photo (or return the built-in sample), then structure + explain it.
+/**
+ * @fileoverview OCR a slip photo (or return the built-in sample), then structure,
+ * RxNorm-check, and explain the medications.
+ * @module routes/scan
+ */
+
 import { Router } from "express";
 import { v4 as uuid } from "uuid";
 import { extractText, publicImageUrl } from "../services/ocr.js";
@@ -6,6 +11,10 @@ import { structurePrescription, explainPrescription } from "../services/llm.js";
 import { validateMedications } from "../services/rxnorm.js";
 import { getConfig } from "../db.js";
 
+/**
+ * Demo slip used by `POST /api/scan/demo` so the UI can be tried without a photo.
+ * @type {object}
+ */
 const SAMPLE = {
   patientName: null,
   doctorName: "Dr. Smith",
@@ -40,6 +49,16 @@ const SAMPLE = {
   ],
 };
 
+/**
+ * Build the scan router. Multer is injected so `server.js` owns storage limits.
+ *
+ * Routes:
+ * - `POST /demo` — canned amoxicillin + ibuprofen slip
+ * - `POST /` — multipart `image` (+ optional `engine`)
+ *
+ * @param {import("multer").Multer} upload Configured multer instance.
+ * @returns {import("express").Router}
+ */
 export function scanRouter(upload) {
   const router = Router();
 

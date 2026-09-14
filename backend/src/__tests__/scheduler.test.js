@@ -1,3 +1,13 @@
+/**
+ * @fileoverview Jest tests for {@link module:services/scheduler} with an in-memory JSON store.
+ *
+ * What this file does:
+ * - Replaces `readJson` / `writeJson` so tests never touch `backend/data/reminders.json`.
+ * - Round-trips `saveReminders` / `listReminders`.
+ * - Checks `dueReminders` at a fixed local noon: matching enabled time fires; disabled,
+ *   already-fired-today, and wrong-minute rows do not.
+ * - Checks `markFired` stamps only the given ids, and `markTaken` records today's taken flag.
+ */
 import { jest } from "@jest/globals";
 
 const store = { reminders: [] };

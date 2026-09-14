@@ -1,3 +1,13 @@
+/**
+ * @fileoverview Jest tests for {@link module:data/drugs-common}.
+ *
+ * What this file does:
+ * - Checks Levenshtein distance on identical strings, `kitten`/`sitting`, and empty strings.
+ * - Checks `closestDrug` for empty input, substring hits (`metformin`), typos (`amoxcillin`),
+ *   nonsense that should not match, and brand names like Crocin.
+ * - Checks Indian `1-0-1` / `1/1/1` / `1-0-0` / `0-0-0` schedules and rejects invalid tokens.
+ * - Spot-checks FREQUENCY_MAP times for BID, TDS, HS, and PRN.
+ */
 import {
   COMMON_DRUGS,
   FREQUENCY_MAP,

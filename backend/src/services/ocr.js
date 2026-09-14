@@ -1,9 +1,28 @@
+/**
+ * @fileoverview OCR a prescription photo. Prefers Google Cloud Vision when a key
+ * is present (better on handwriting); otherwise uses Tesseract after a Sharp
+ * preprocess (greyscale, normalize, sharpen, upscale).
+ * @module services/ocr
+ */
+
 import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
 import { createWorker } from "tesseract.js";
 import { envOrConfig } from "../db.js";
 
+/**
+ * @typedef {object} OcrResult
+ * @property {string} engine `"tesseract"` or `"google-vision"`.
+ * @property {string} text
+ * @property {number} confidence 0–100 style score.
+ */
+
+/**
+ * Write a cleaned PNG next to the original to help Tesseract.
+ * @param {string} imagePath
+ * @returns {Promise<string>} Path to the preprocessed file.
+ */
 async function preprocess(imagePath) {
   const out = imagePath.replace(/(\.\w+)$/, "-prep$1");
   await sharp(imagePath)
@@ -17,6 +36,11 @@ async function preprocess(imagePath) {
   return out;
 }
 
+/**
+ * Run English Tesseract on a preprocessed copy of `imagePath`.
+ * @param {string} imagePath
+ * @returns {Promise<OcrResult>}
+ */
 async function tesseractOcr(imagePath) {
   const prepared = await preprocess(imagePath);
   const worker = await createWorker("eng");
@@ -42,6 +66,11 @@ async function tesseractOcr(imagePath) {
   }
 }
 
+/**
+ * DOCUMENT_TEXT_DETECTION via Google Cloud Vision.
+ * @param {string} imagePath
+ * @returns {Promise<OcrResult|null>} `null` when no API key is configured.
+ */
 async function googleVisionOcr(imagePath) {
   const key = envOrConfig("GOOGLE_VISION_API_KEY", "googleVisionKey");
   if (!key) return null;
@@ -71,6 +100,14 @@ async function googleVisionOcr(imagePath) {
   };
 }
 
+/**
+ * OCR `imagePath` with the requested engine.
+ * `"auto"` uses Vision when a key exists, then falls back to Tesseract on failure.
+ *
+ * @param {string} imagePath Absolute path to the uploaded image.
+ * @param {string} [preferred="auto"] `"auto"` | `"google"` | `"tesseract"`.
+ * @returns {Promise<OcrResult>}
+ */
 export async function extractText(imagePath, preferred = "auto") {
   const engine = preferred || "auto";
   const hasVision = Boolean(envOrConfig("GOOGLE_VISION_API_KEY", "googleVisionKey"));
@@ -87,6 +124,11 @@ export async function extractText(imagePath, preferred = "auto") {
   return tesseractOcr(imagePath);
 }
 
+/**
+ * Public URL path for a file sitting in the uploads directory.
+ * @param {string} filename Basename or path; only the basename is used.
+ * @returns {string} e.g. `"/uploads/abc.png"`.
+ */
 export function publicImageUrl(filename) {
   return `/uploads/${path.basename(filename)}`;
 }

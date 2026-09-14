@@ -1,8 +1,40 @@
+/**
+ * @fileoverview Heuristic prescription parser. Turns OCR lines into structured
+ * medications (name, dose, frequency, reminder times) when no LLM key is configured,
+ * and as a fallback when the model returns unusable JSON.
+ * @module services/parser
+ */
+
 import { closestDrug, FREQUENCY_MAP, timesFromIndianSchedule } from "../data/drugs-common.js";
+
+/**
+ * @typedef {object} Medication
+ * @property {string} name Best-guess drug name.
+ * @property {string} rawLine Original OCR line.
+ * @property {string|null} strength e.g. `"500 mg"`.
+ * @property {string|null} form `"tablet"` / `"capsule"` when the unit implies a form.
+ * @property {string} dosage Instruction snippet such as `"Take 500 mg"`.
+ * @property {string} frequency Human label, e.g. `"twice daily"`.
+ * @property {string[]} times Suggested `HH:MM` reminder times.
+ * @property {string|null} duration e.g. `"5 days"`.
+ * @property {string|null} instructions Meal timing, if mentioned.
+ */
+
+/**
+ * @typedef {object} ParsedPrescription
+ * @property {string|null} patientName
+ * @property {string|null} doctorName
+ * @property {string|null} date
+ * @property {Medication[]} medications
+ * @property {string} notes
+ * @property {string} plainLanguage
+ * @property {string[]} warnings
+ */
 
 const DOSE_RE = /(\d+(?:\.\d+)?)\s?(mg|mcg|mcg|µg|g|ml|ml|iu|units?|%|tablet|tab|cap|capsule|drop|puff)s?\b/i;
 const DURATION_RE = /(?:for\s+)?(\d+)\s*(day|days|week|weeks|month|months)\b/i;
 
+/** @param {string} text @returns {string[]} Non-empty trimmed lines. */
 function linesOf(text) {
   return String(text)
     .split(/\n+/)
@@ -10,6 +42,11 @@ function linesOf(text) {
     .filter(Boolean);
 }
 
+/**
+ * Detect BID/TDS/`1-0-1` style frequency on a single line.
+ * @param {string} text
+ * @returns {{label: string, times: string[], notation: string|null}}
+ */
 function detectFrequency(text) {
   const lower = text.toLowerCase();
   const indian = timesFromIndianSchedule(text) || timesFromIndianSchedule(lower.match(/\b[01]\s*[-/]\s*[01]\s*[-/]\s*[01]\b/)?.[0] || "");
@@ -20,6 +57,11 @@ function detectFrequency(text) {
   return { label: "as directed", times: ["08:00"], notation: null };
 }
 
+/**
+ * Pull the first dose token such as `500 mg` or `1 tablet`.
+ * @param {string} text
+ * @returns {{strength: string|null, form: string|null}}
+ */
 function extractDose(text) {
   const m = text.match(DOSE_RE);
   if (!m) return { strength: null, form: null };
@@ -28,6 +70,11 @@ function extractDose(text) {
   return { strength: `${m[1]} ${unit}`, form };
 }
 
+/**
+ * Strip dose/form tokens from a line and snap the remainder onto {@link closestDrug}.
+ * @param {string} line
+ * @returns {{raw: string, name: string}|null}
+ */
 function guessName(line) {
   const cleaned = line
     .replace(DOSE_RE, " ")
@@ -44,6 +91,14 @@ function guessName(line) {
   };
 }
 
+/**
+ * Parse OCR (or typed) prescription text into a structured slip.
+ * Duplicate drug names are skipped; if nothing looks like a medicine, a single
+ * "could not read" placeholder is returned so the UI still has something to show.
+ *
+ * @param {string} ocrText Raw text from Tesseract / Vision / the user.
+ * @returns {ParsedPrescription}
+ */
 export function parsePrescriptionText(ocrText) {
   const lines = linesOf(ocrText);
   const medications = [];
@@ -112,6 +167,11 @@ export function parsePrescriptionText(ocrText) {
   };
 }
 
+/**
+ * One-sentence-per-medicine summary a non-clinician can read.
+ * @param {Medication[]} medications
+ * @returns {string}
+ */
 export function buildPlainLanguage(medications) {
   if (!medications.length) {
     return "I could not pick out medicines from that slip. A brighter photo or typing the names in will help.";
@@ -129,10 +189,16 @@ export function buildPlainLanguage(medications) {
     .join(" ");
 }
 
+/** @param {string} s @returns {string} */
 function title(s) {
   return String(s).replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/**
+ * Expand a medication's `times` into reminder slot objects (defaults to `08:00`).
+ * @param {Pick<Medication, "name"|"strength"|"times"|"frequency">} med
+ * @returns {{medicationName: string, strength: string|null, time: string, frequency: string, enabled: boolean}[]}
+ */
 export function scheduleFromMedication(med) {
   const times = Array.isArray(med.times) && med.times.length ? med.times : ["08:00"];
   return times.map((time) => ({

@@ -1,4 +1,8 @@
-// Drug name lookup: local common list + RxNorm.
+/**
+ * @fileoverview Drug name lookup: local {@link closestDrug} list plus NIH RxNorm.
+ * @module routes/drugs
+ */
+
 import { Router } from "express";
 import { validateDrug } from "../services/rxnorm.js";
 import { closestDrug } from "../data/drugs-common.js";
@@ -16,4 +20,5 @@ router.get("/search", async (req, res) => {
   res.json({ local, rxnorm });
 });
 
+/** Express router mounted at `/api/drugs`. */
 export default router;

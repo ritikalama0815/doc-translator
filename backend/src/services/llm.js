@@ -1,3 +1,10 @@
+/**
+ * @fileoverview LLM helpers for structuring OCR, explaining a slip, and symptom chat.
+ * Anthropic is preferred when both keys exist; with no key the heuristic parser
+ * and {@link ruleBasedSymptomReply} run instead.
+ * @module services/llm
+ */
+
 import { envOrConfig } from "../db.js";
 import { parsePrescriptionText } from "./parser.js";
 
@@ -29,6 +36,7 @@ Always:
 
 If the user describes emergency red flags (chest pain, trouble breathing, stroke signs, severe allergic reaction, suicidal thoughts, uncontrolled bleeding, pregnancy danger signs, infant under 3 months with fever), tell them to get emergency care now.`;
 
+/** @returns {{anthropic: string, openai: string, model: string}} */
 function keys() {
   return {
     anthropic: envOrConfig("ANTHROPIC_API_KEY", "anthropicKey"),
@@ -37,6 +45,10 @@ function keys() {
   };
 }
 
+/**
+ * Whether an LLM provider is configured (used by `/api/health` and `/api/config`).
+ * @returns {{available: boolean, provider: "anthropic"|"openai"|null}}
+ */
 export function llmStatus() {
   const { anthropic, openai } = keys();
   return {
@@ -45,6 +57,12 @@ export function llmStatus() {
   };
 }
 
+/**
+ * @param {string} system System prompt.
+ * @param {string} user User message.
+ * @param {string} [model]
+ * @returns {Promise<string>} Concatenated text blocks.
+ */
 async function callAnthropic(system, user, model) {
   const { anthropic } = keys();
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -66,6 +84,12 @@ async function callAnthropic(system, user, model) {
   return json.content?.map((p) => p.text).join("\n") || "";
 }
 
+/**
+ * @param {string} system
+ * @param {string} user
+ * @param {string} [model]
+ * @returns {Promise<string>}
+ */
 async function callOpenAI(system, user, model) {
   const { openai } = keys();
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -89,6 +113,13 @@ async function callOpenAI(system, user, model) {
   return json.choices?.[0]?.message?.content || "";
 }
 
+/**
+ * Call the configured provider, or `null` when no API key is set.
+ * @param {string} system
+ * @param {string} user
+ * @param {{json?: boolean}} [opts]
+ * @returns {Promise<string|null>}
+ */
 async function complete(system, user, { json = true } = {}) {
   const { anthropic, openai, model } = keys();
   if (!anthropic && !openai) return null;
@@ -98,6 +129,11 @@ async function complete(system, user, { json = true } = {}) {
   return text;
 }
 
+/**
+ * Parse the first `{...}` object out of model output, ignoring leading prose.
+ * @param {string|null|undefined} text
+ * @returns {object|null}
+ */
 function parseJsonLoose(text) {
   if (!text) return null;
   const match = text.match(/\{[\s\S]*\}/);
@@ -109,6 +145,13 @@ function parseJsonLoose(text) {
   }
 }
 
+/**
+ * Turn OCR text into a structured prescription. Uses the LLM when a key exists;
+ * otherwise (or if JSON parse fails) returns the heuristic parser result with `source: "heuristic"`.
+ *
+ * @param {string} ocrText
+ * @returns {Promise<object>} Structured slip plus `source` (`"llm"` | `"heuristic"`).
+ */
 export async function structurePrescription(ocrText) {
   const fallback = parsePrescriptionText(ocrText);
   const raw = await complete(
@@ -142,6 +185,13 @@ export async function structurePrescription(ocrText) {
   };
 }
 
+/**
+ * Patient-facing explanation of an already-structured slip.
+ * Falls back to `plainLanguage` + per-med how-to-take lines when no model is available.
+ *
+ * @param {object} structured Output of {@link structurePrescription} or the heuristic parser.
+ * @returns {Promise<{explanation: string, howToTake: string[], seeADoctorIf: string[]}>}
+ */
 export async function explainPrescription(structured) {
   const raw = await complete(
     SYSTEM_EXPLAIN,
@@ -162,6 +212,13 @@ export async function explainPrescription(structured) {
   };
 }
 
+/**
+ * Reply to a symptom-chat transcript. Uses the LLM when configured; otherwise
+ * {@link ruleBasedSymptomReply} on the last user message.
+ *
+ * @param {Array<{role: string, content: string}>} messages
+ * @returns {Promise<{reply: string, urgency: string, seeADoctorIf: string[], selfCare: string[], source: string}>}
+ */
 export async function symptomReply(messages) {
   const status = llmStatus();
   const transcript = messages
@@ -189,12 +246,25 @@ export async function symptomReply(messages) {
   return ruleBasedSymptomReply(messages.at(-1)?.content || "");
 }
 
+/**
+ * Whole-word mention of `key` in `haystack`, ignoring negated forms like "no cough".
+ * @param {string} haystack
+ * @param {string} key
+ * @returns {boolean}
+ */
 function mentions(haystack, key) {
   const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   if (!new RegExp(`\\b${escaped}\\b`, "i").test(haystack)) return false;
   return !new RegExp(`\\b(?:no|without|not a)\\s+${escaped}\\b`, "i").test(haystack);
 }
 
+/**
+ * Offline symptom guidance: urgent needles first, then cold/fever/headache/stomach/rash topics.
+ * Always reminds the user this is not a diagnosis.
+ *
+ * @param {string} text Latest user message.
+ * @returns {{reply: string, urgency: "urgent"|"see-doctor"|"self-care", seeADoctorIf: string[], selfCare: string[], source: "rules"}}
+ */
 export function ruleBasedSymptomReply(text) {
   const t = text.toLowerCase();
   const urgent = [

@@ -1,3 +1,14 @@
+/**
+ * @fileoverview Jest tests for {@link module:services/llm} with API keys stubbed off.
+ *
+ * What this file does:
+ * - Mocks `envOrConfig` so no Anthropic/OpenAI key is visible; nothing hits a real model.
+ * - Asserts `llmStatus` is `{ available: false, provider: null }`.
+ * - Walks `ruleBasedSymptomReply` through urgent phrases (chest pain, breathing, stroke, 988),
+ *   topic buckets (cold, fever, headache, stomach, rash), negated "no cough", and generic hello.
+ * - Asserts `structurePrescription` / `explainPrescription` / `symptomReply` use the
+ *   heuristic parser and rule-based chat when no LLM is configured.
+ */
 import { jest } from "@jest/globals";
 
 jest.unstable_mockModule("../db.js", () => ({

@@ -1,3 +1,13 @@
+/**
+ * @fileoverview Jest tests for {@link module:services/rxnorm} with `fetch` mocked.
+ *
+ * What this file does:
+ * - Blank / "could not read" names return immediately without calling the network.
+ * - A fake RxNav + openFDA response is treated as a successful Amoxicillin match.
+ * - A thrown `fetch` becomes the "lookup is offline" message.
+ * - An empty RxNav payload becomes "no close match".
+ * - `validateMedications` attaches a `validation` object onto each medication.
+ */
 import { jest } from "@jest/globals";
 
 const { validateDrug, validateMedications } = await import("../services/rxnorm.js");
