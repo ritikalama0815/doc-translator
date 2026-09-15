@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": "882415b0-665e-4e4b-83aa-0fecb5e82cc4",
+    "medicationName": "xyz",
+    "strength": null,
+    "time": "22:47",
+    "frequency": "once daily",
+    "enabled": true,
+    "takenOn": {},
+    "prescriptionId": null,
+    "lastFiredOn": "2026-09-15"
+  }
+]

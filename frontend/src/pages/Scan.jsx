@@ -117,6 +117,9 @@ export default function Scan({ onSaved }) {
                 <div className="med" key={`${med.name}-${i}`}>
                   <div>
                     <b style={{ textTransform: "capitalize" }}>{med.name}</b>
+                    {med.nameCorrected && med.ocrName && (
+                      <div className="tiny">OCR looked like “{med.ocrName}”</div>
+                    )}
                     <div className="tiny">
                       {med.dosage} · {med.frequency}
                       {med.strength ? ` · ${med.strength}` : ""}
@@ -132,7 +135,8 @@ export default function Scan({ onSaved }) {
                   <span className={`pill ${med.validation?.matched ? "ok" : "warn"}`}>
                     {med.validation?.matched ? "RxNorm match" : "needs a human look"}
                   </span>
-                  {med.validation?.displayName && (
+                  {med.validation?.displayName &&
+                    med.validation.displayName.toLowerCase() !== String(med.name).toLowerCase() && (
                     <div className="tiny">{med.validation.displayName}</div>
                   )}
                 </div>

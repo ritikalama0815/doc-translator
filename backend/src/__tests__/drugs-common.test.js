@@ -12,6 +12,7 @@ import {
   COMMON_DRUGS,
   FREQUENCY_MAP,
   closestDrug,
+  correctDrugName,
   levenshtein,
   timesFromIndianSchedule,
 } from "../data/drugs-common.js";
@@ -43,6 +44,25 @@ describe("closestDrug", () => {
     const hit = closestDrug("amoxcillin");
     expect(hit?.name).toBe("amoxicillin");
     expect(hit?.score).toBeGreaterThan(0);
+  });
+
+  test("corrects OCR typos like ibpofen and orprelol even with dose text", () => {
+    expect(closestDrug("ibpofen")?.name).toBe("ibuprofen");
+    expect(closestDrug("ibpofen 400 mg BID")?.name).toBe("ibuprofen");
+    expect(closestDrug("orprelol")?.name).toBe("oxprenolol");
+    expect(closestDrug("orprelol 20 mg OD")?.name).toBe("oxprenolol");
+  });
+
+  test("correctDrugName records the OCR spelling when it snaps to a real drug", () => {
+    expect(correctDrugName("ibpofen")).toMatchObject({
+      name: "ibuprofen",
+      ocrName: "ibpofen",
+      corrected: true,
+    });
+    expect(correctDrugName("ibuprofen")).toMatchObject({
+      name: "ibuprofen",
+      corrected: false,
+    });
   });
 
   test("returns null when the guess is too far from any common drug", () => {

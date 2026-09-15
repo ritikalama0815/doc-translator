@@ -5,7 +5,7 @@
  * @module services/parser
  */
 
-import { closestDrug, FREQUENCY_MAP, timesFromIndianSchedule } from "../data/drugs-common.js";
+import { closestDrug, correctDrugName, FREQUENCY_MAP, timesFromIndianSchedule } from "../data/drugs-common.js";
 
 /**
  * @typedef {object} Medication
@@ -18,6 +18,8 @@ import { closestDrug, FREQUENCY_MAP, timesFromIndianSchedule } from "../data/dru
  * @property {string[]} times Suggested `HH:MM` reminder times.
  * @property {string|null} duration e.g. `"5 days"`.
  * @property {string|null} instructions Meal timing, if mentioned.
+ * @property {string} [ocrName] Original OCR/LLM spelling before correction.
+ * @property {boolean} [nameCorrected] True when `name` was snapped onto a known drug.
  */
 
 /**
@@ -85,9 +87,11 @@ function guessName(line) {
     .trim();
   if (!cleaned) return null;
   const guess = closestDrug(cleaned);
+  const ocrName = cleaned.split(" ").slice(0, 3).join(" ");
   return {
     raw: cleaned,
-    name: guess?.name || cleaned.split(" ").slice(0, 3).join(" "),
+    name: guess?.name || ocrName,
+    ocrName,
   };
 }
 
@@ -123,6 +127,8 @@ export function parsePrescriptionText(ocrText) {
 
     medications.push({
       name: named.name,
+      ocrName: named.ocrName || named.name,
+      nameCorrected: named.ocrName ? named.name.toLowerCase() !== named.ocrName.toLowerCase() : false,
       rawLine: line,
       strength: dose.strength,
       form: dose.form,
@@ -154,17 +160,41 @@ export function parsePrescriptionText(ocrText) {
     });
   }
 
+  const resolved = canonicalizeMedications(medications);
+
   return {
     patientName: null,
     doctorName: null,
     date: null,
-    medications,
+    medications: resolved,
     notes: "",
-    plainLanguage: buildPlainLanguage(medications),
+    plainLanguage: buildPlainLanguage(resolved),
     warnings: [
       "This is a reading aid, not medical advice. Confirm with your pharmacist or clinician before taking anything.",
     ],
   };
+}
+
+/**
+ * Replace OCR/LLM spellings with the closest known drug when the match is tight.
+ * Keeps the original text on `ocrName` so the UI can show what the slip looked like.
+ *
+ * @param {Medication[]} medications
+ * @returns {Medication[]}
+ */
+export function canonicalizeMedications(medications) {
+  return (medications || []).map((med) => {
+    if (!med?.name || /could not read/i.test(med.name)) return med;
+    const source = med.ocrName || med.name;
+    const fix = correctDrugName(med.name);
+    const name = fix.corrected ? fix.name : med.name;
+    return {
+      ...med,
+      name,
+      ocrName: source,
+      nameCorrected: name.toLowerCase() !== String(source).trim().toLowerCase(),
+    };
+  });
 }
 
 /**

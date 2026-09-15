@@ -87,6 +87,11 @@ describe("structurePrescription without an LLM", () => {
     expect(result.medications[0].name).toBe("amoxicillin");
     expect(result.plainLanguage).toMatch(/Amoxicillin/i);
   });
+
+  test("corrects OCR typos in the heuristic fallback", async () => {
+    const result = await structurePrescription("Ibpofen 400 mg BID");
+    expect(result.medications[0].name).toBe("ibuprofen");
+  });
 });
 
 describe("explainPrescription without an LLM", () => {

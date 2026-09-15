@@ -5,6 +5,8 @@
  * @module services/rxnorm
  */
 
+import { correctDrugName, isCloseDrugName } from "../data/drugs-common.js";
+
 const RXNAV = "https://rxnav.nlm.nih.gov/REST";
 const OPENFDA = "https://api.fda.gov/drug/label.json";
 
@@ -110,15 +112,39 @@ export async function validateDrug(name) {
 }
 
 /**
- * Run {@link validateDrug} on each medication and attach a `validation` field.
- * @param {Array<{name: string}>} medications
+ * Official name from RxNorm, when it is clearly the same drug as the OCR/local guess.
+ * @param {string} original
+ * @param {string} current
+ * @param {DrugValidation} check
+ * @returns {string}
+ */
+function officialName(original, current, check) {
+  const rxName = check.displayName || check.synonym;
+  if (!check.matched || !rxName) return current;
+  if (isCloseDrugName(original, rxName) || isCloseDrugName(current, rxName)) return rxName;
+  return current;
+}
+
+/**
+ * Correct each name against the local list, then RxNorm, and attach `validation`.
+ * @param {Array<{name: string, ocrName?: string}>} medications
  * @returns {Promise<Array<object>>}
  */
 export async function validateMedications(medications) {
   const out = [];
-  for (const med of medications) {
-    const check = await validateDrug(med.name);
-    out.push({ ...med, validation: check });
+  for (const med of medications || []) {
+    const original = med.ocrName || med.name;
+    const local = correctDrugName(med.name);
+    const lookupName = local.corrected ? local.name : med.name;
+    const check = await validateDrug(lookupName);
+    const name = officialName(original, lookupName, check);
+    out.push({
+      ...med,
+      name,
+      ocrName: original,
+      nameCorrected: Boolean(name) && name.toLowerCase() !== String(original || "").trim().toLowerCase(),
+      validation: check,
+    });
   }
   return out;
 }

@@ -63,6 +63,17 @@ describe("parsePrescriptionText", () => {
     expect(names).toEqual(expect.arrayContaining(["metformin", "atorvastatin"]));
   });
 
+  test("snaps messy OCR names onto the real medication", () => {
+    const ibuprofen = parsePrescriptionText("Ibpofen 400 mg BID");
+    expect(ibuprofen.medications[0].name).toBe("ibuprofen");
+    expect(ibuprofen.medications[0].nameCorrected).toBe(true);
+    expect(ibuprofen.plainLanguage).toMatch(/Ibuprofen/i);
+
+    const beta = parsePrescriptionText("Orprelol 20 mg OD");
+    expect(beta.medications[0].name).toBe("oxprenolol");
+    expect(beta.medications[0].ocrName.toLowerCase()).toMatch(/orprelol/);
+  });
+
   test("skips duplicate drug names", () => {
     const { medications } = parsePrescriptionText(
       "Amoxicillin 500 mg BID\nAmoxicillin 500 mg BID",

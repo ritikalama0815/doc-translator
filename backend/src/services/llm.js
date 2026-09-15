@@ -6,13 +6,14 @@
  */
 
 import { envOrConfig } from "../db.js";
-import { parsePrescriptionText } from "./parser.js";
+import { parsePrescriptionText, canonicalizeMedications, buildPlainLanguage } from "./parser.js";
 
 const SYSTEM_STRUCT = `You are app's prescription reader. You turn messy OCR from handwritten prescriptions into structured JSON.
 
 Rules:
 - Never diagnose or invent medicines that are not reasonably present in the OCR.
-- If a drug name is uncertain, keep the raw guess and set confidence low.
+- Correct obvious OCR misspellings to the real generic or brand name when it is clearly the same drug (ibpofen → ibuprofen, orprelol → oxprenolol). Put the messy OCR spelling in rawLine.
+- If the name is too garbled to be sure, keep the raw guess and set confidence low.
 - Prefer generic names when obvious.
 - Interpret common notations: BID/BD = twice daily, TID/TDS = 3x, QID = 4x, HS = bedtime, PRN = as needed, and 1-0-1 / 1-1-1 (morning-afternoon-night).
 - times must be HH:MM 24h suggestions for reminders.
@@ -161,13 +162,10 @@ export async function structurePrescription(ocrText) {
   const parsed = parseJsonLoose(raw);
   if (!parsed) return { ...fallback, source: "heuristic" };
 
-  const medications = Array.isArray(parsed.medications) ? parsed.medications : fallback.medications;
-  return {
-    patientName: parsed.patientName || null,
-    doctorName: parsed.doctorName || null,
-    date: parsed.date || null,
-    medications: medications.map((med) => ({
+  const medications = canonicalizeMedications(
+    (Array.isArray(parsed.medications) ? parsed.medications : fallback.medications).map((med) => ({
       name: med.name || "Unknown",
+      ocrName: med.ocrName || med.name,
       rawLine: med.rawLine || med.name,
       strength: med.strength || null,
       form: med.form || null,
@@ -178,8 +176,16 @@ export async function structurePrescription(ocrText) {
       instructions: med.instructions || null,
       confidence: med.confidence ?? null,
     })),
+  );
+  return {
+    patientName: parsed.patientName || null,
+    doctorName: parsed.doctorName || null,
+    date: parsed.date || null,
+    medications,
     notes: parsed.notes || "",
-    plainLanguage: parsed.plainLanguage || fallback.plainLanguage,
+    plainLanguage: medications.some((m) => m.nameCorrected)
+      ? buildPlainLanguage(medications)
+      : parsed.plainLanguage || buildPlainLanguage(medications),
     warnings: parsed.warnings?.length ? parsed.warnings : fallback.warnings,
     source: "llm",
   };

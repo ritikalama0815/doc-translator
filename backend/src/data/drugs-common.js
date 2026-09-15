@@ -26,6 +26,15 @@ export const COMMON_DRUGS = [
   "pantoprazole",
   "levothyroxine",
   "metoprolol",
+  "oxprenolol",
+  "propranolol",
+  "atenolol",
+  "carvedilol",
+  "bisoprolol",
+  "nebivolol",
+  "sotalol",
+  "labetalol",
+  "pindolol",
   "albuterol",
   "salbutamol",
   "prednisone",
@@ -148,6 +157,121 @@ export function timesFromIndianSchedule(token) {
   return { label, times, notation: `${m[1]}-${m[2]}-${m[3]}` };
 }
 
+/** Dose / frequency words that should not be fuzzy-matched as drug names. */
+const NAME_STOPWORDS = new Set([
+  "bid",
+  "bd",
+  "tid",
+  "tds",
+  "qid",
+  "qds",
+  "qd",
+  "od",
+  "hs",
+  "qhs",
+  "prn",
+  "tab",
+  "tabs",
+  "tablet",
+  "tablets",
+  "cap",
+  "caps",
+  "capsule",
+  "capsules",
+  "syrup",
+  "susp",
+  "injection",
+  "mg",
+  "ml",
+  "mcg",
+  "iu",
+  "units",
+  "unit",
+  "take",
+  "for",
+  "and",
+  "the",
+  "with",
+  "food",
+  "meal",
+  "meals",
+  "after",
+  "before",
+  "daily",
+  "once",
+  "twice",
+  "three",
+  "four",
+  "times",
+  "every",
+  "hours",
+  "hour",
+  "night",
+  "bedtime",
+  "needed",
+  "as",
+  "directed",
+  "days",
+  "day",
+  "week",
+  "weeks",
+  "month",
+  "months",
+  "morning",
+  "afternoon",
+  "evening",
+  "sig",
+  "po",
+  "by",
+  "mouth",
+  "oral",
+]);
+
+/**
+ * @param {string|null|undefined} name
+ * @returns {string}
+ */
+export function normalizeDrugQuery(name) {
+  return String(name || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9 +.-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Full string plus name-like tokens (dose/frequency words stripped).
+ * @param {string} q
+ * @returns {string[]}
+ */
+function queryCandidates(q) {
+  const tokens = q
+    .split(/[\s/+]+/)
+    .map((t) => t.replace(/^-+|-+$/g, ""))
+    .filter((t) => t && t.length >= 3 && !NAME_STOPWORDS.has(t) && !/^\d/.test(t));
+  const out = [];
+  const add = (s) => {
+    if (s && !out.includes(s)) out.push(s);
+  };
+  add(q);
+  for (const t of tokens) add(t);
+  if (tokens.length > 1) add(tokens.join(" "));
+  return out;
+}
+
+/**
+ * Exact or clearly-contained name (full drug in the line, or a truncated prefix).
+ * @param {string} query
+ * @param {string} drug
+ * @returns {boolean}
+ */
+function isContainedName(query, drug) {
+  if (query === drug) return true;
+  if (drug.length >= 4 && query.includes(drug)) return true;
+  if (query.length >= 5 && (drug.startsWith(query) || query.startsWith(drug))) return true;
+  return false;
+}
+
 /**
  * Case-insensitive Levenshtein edit distance between two strings.
  * @param {string} a
@@ -172,29 +296,76 @@ export function levenshtein(a, b) {
 }
 
 /**
+ * Whether two strings are the same drug name allowing typical OCR typos.
+ * @param {string|null|undefined} a
+ * @param {string|null|undefined} b
+ * @returns {boolean}
+ */
+export function isCloseDrugName(a, b) {
+  const x = normalizeDrugQuery(a);
+  const y = normalizeDrugQuery(b);
+  if (!x || !y) return false;
+  if (x === y || isContainedName(x, y) || isContainedName(y, x)) return true;
+  const dist = levenshtein(x, y);
+  const limit = Math.max(2, Math.ceil(Math.min(x.length, y.length) * 0.45));
+  const gap = Math.abs(x.length - y.length);
+  return dist <= limit && gap <= Math.max(3, Math.floor(Math.max(x.length, y.length) * 0.4));
+}
+
+/**
  * Find the closest {@link COMMON_DRUGS} entry for a noisy OCR name.
- * Exact substring matches win immediately; otherwise the best Levenshtein score
- * is kept only if it is within `max(2, 40% of query length)`.
+ * Matches individual tokens so `"ibpofen 400 mg BID"` still snaps to ibuprofen.
+ * Exact/contained hits win; otherwise the best Levenshtein score is kept only if
+ * it is within ~45% of the shorter string and the lengths are similar.
  *
  * @param {string|null|undefined} name Raw name or line fragment.
  * @returns {{name: string, score: number}|null} Match (`score` 0 is exact/contained), or `null`.
  */
 export function closestDrug(name) {
-  const q = (name || "").toLowerCase().replace(/[^a-z0-9 +.-]/g, " ").trim();
+  const q = normalizeDrugQuery(name);
   if (!q) return null;
+
   let best = null;
   let bestScore = Infinity;
-  for (const drug of COMMON_DRUGS) {
-    if (q.includes(drug) || drug.includes(q)) {
-      return { name: drug, score: 0 };
-    }
-    const score = levenshtein(q, drug);
-    if (score < bestScore) {
-      bestScore = score;
-      best = drug;
+  let bestQuery = q;
+
+  for (const query of queryCandidates(q)) {
+    for (const drug of COMMON_DRUGS) {
+      if (isContainedName(query, drug)) {
+        return { name: drug, score: 0 };
+      }
+      const score = levenshtein(query, drug);
+      const gap = Math.abs(query.length - drug.length);
+      const bestGap = best ? Math.abs(bestQuery.length - best.length) : Infinity;
+      if (score < bestScore || (score === bestScore && gap < bestGap)) {
+        bestScore = score;
+        best = drug;
+        bestQuery = query;
+      }
     }
   }
-  const threshold = Math.max(2, Math.floor(q.length * 0.4));
-  if (best && bestScore <= threshold) return { name: best, score: bestScore };
+
+  if (!best) return null;
+  const limit = Math.max(2, Math.ceil(Math.min(bestQuery.length, best.length) * 0.45));
+  const gap = Math.abs(bestQuery.length - best.length);
+  if (bestScore <= limit && gap <= Math.max(3, Math.floor(best.length * 0.4))) {
+    return { name: best, score: bestScore };
+  }
   return null;
+}
+
+/**
+ * Snap a messy OCR/LLM name onto the local list when it is clearly the same drug.
+ * @param {string|null|undefined} name
+ * @returns {{name: string, ocrName: string, corrected: boolean, score: number|null}}
+ */
+export function correctDrugName(name) {
+  const original = String(name || "").trim();
+  if (!original || /could not read/i.test(original) || /^unknown$/i.test(original)) {
+    return { name: original, ocrName: original, corrected: false, score: null };
+  }
+  const hit = closestDrug(original);
+  if (!hit) return { name: original, ocrName: original, corrected: false, score: null };
+  const same = hit.name.toLowerCase() === original.toLowerCase();
+  return { name: hit.name, ocrName: original, corrected: !same, score: hit.score };
 }

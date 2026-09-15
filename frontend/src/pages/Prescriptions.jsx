@@ -34,6 +34,9 @@ export default function Prescriptions({ items, onOpenReminders, onDelete }) {
                   <div className="med" key={`${rx.id}-${i}`}>
                     <div>
                       <b style={{ textTransform: "capitalize" }}>{med.name}</b>
+                      {med.nameCorrected && med.ocrName && (
+                        <div className="tiny">OCR looked like “{med.ocrName}”</div>
+                      )}
                       <div className="tiny">
                         {med.dosage} · {med.frequency}
                       </div>

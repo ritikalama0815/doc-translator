@@ -9,6 +9,7 @@ import { v4 as uuid } from "uuid";
 import { extractText, publicImageUrl } from "../services/ocr.js";
 import { structurePrescription, explainPrescription } from "../services/llm.js";
 import { validateMedications } from "../services/rxnorm.js";
+import { buildPlainLanguage } from "../services/parser.js";
 import { getConfig } from "../db.js";
 
 /**
@@ -90,7 +91,8 @@ export function scanRouter(upload) {
       const ocr = await extractText(req.file.path, engine);
       const structured = await structurePrescription(ocr.text || "");
       const medications = await validateMedications(structured.medications || []);
-      const explanation = await explainPrescription({ ...structured, medications });
+      const plainLanguage = buildPlainLanguage(medications);
+      const explanation = await explainPrescription({ ...structured, medications, plainLanguage });
 
       res.json({
         id: uuid(),
@@ -99,6 +101,7 @@ export function scanRouter(upload) {
         ocr,
         ...structured,
         medications,
+        plainLanguage,
         explanation,
       });
     } catch (err) {

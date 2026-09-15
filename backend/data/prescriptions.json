@@ -1,1 +1,97 @@
-[]
+[
+  {
+    "id": "d790ab80-64f1-493f-b6c0-ac1fce5c1729",
+    "createdAt": "2026-09-15T03:06:00.660Z",
+    "title": "Amoxicillin",
+    "imageUrl": null,
+    "ocr": {
+      "engine": "demo",
+      "text": "Amoxicillin 500 mg 1-0-1 x 5 days after meals\nIbuprofen 400 mg BID prn pain with food x 3 days",
+      "confidence": 100
+    },
+    "patientName": null,
+    "doctorName": "Dr. Smith",
+    "date": "2026-09-10",
+    "notes": "sample slip for trying pepema",
+    "medications": [
+      {
+        "name": "amoxicillin",
+        "rawLine": "Amoxicillin 500 mg 1-0-1 x 5 days after meals",
+        "strength": "500 mg",
+        "form": "capsule",
+        "dosage": "1 capsule",
+        "frequency": "twice daily",
+        "times": [
+          "08:00",
+          "20:00"
+        ],
+        "duration": "5 days",
+        "instructions": "after meals",
+        "ocrName": "amoxicillin",
+        "nameCorrected": false,
+        "validation": {
+          "query": "amoxicillin",
+          "matched": true,
+          "rxcui": "723",
+          "displayName": "amoxicillin",
+          "synonym": "Amoxicillin",
+          "tty": "IN",
+          "score": 11.445463180541992,
+          "openFda": {
+            "brand": "amoxicillin and clavulanate potassium",
+            "generic": "AMOXICILLIN AND CLAVULANATE POTASSIUM",
+            "purpose": "1 INDICATIONS AND USAGE Amoxicillin and clavulanate potassium for oral suspension, 600 mg/42.9 mg per 5 mL is indicated for the treatment of pediatric patients aged 3 months to 12 years weighing less than or equal to 40 kg with: Recurrent or persistent acute otitis media due to S"
+          },
+          "message": "Matched RxNorm amoxicillin"
+        }
+      },
+      {
+        "name": "ibuprofen",
+        "rawLine": "Ibuprofen 400 mg BID prn pain",
+        "strength": "400 mg",
+        "form": "tablet",
+        "dosage": "1 tablet",
+        "frequency": "twice daily",
+        "times": [
+          "08:00",
+          "20:00"
+        ],
+        "duration": "3 days",
+        "instructions": "with food",
+        "ocrName": "ibuprofen",
+        "nameCorrected": false,
+        "validation": {
+          "query": "ibuprofen",
+          "matched": true,
+          "rxcui": "5640",
+          "displayName": "ibuprofen",
+          "synonym": "Ibuprofen",
+          "tty": "IN",
+          "score": 10.50613021850586,
+          "openFda": {
+            "brand": "Ibuprofen Dye Free",
+            "generic": "IBUPROFEN",
+            "purpose": "Purpose Pain reliever/fever reducer"
+          },
+          "message": "Matched RxNorm ibuprofen"
+        }
+      }
+    ],
+    "warnings": [
+      "This is a reading aid, not medical advice. Confirm with your pharmacist or clinician before taking anything."
+    ],
+    "plainLanguage": "Take amoxicillin 500 mg morning and night for 5 days after meals. Ibuprofen 400 mg twice daily with food if you have pain, for up to 3 days.",
+    "explanation": {
+      "explanation": "Take amoxicillin 500 mg morning and night for 5 days after meals. Ibuprofen 400 mg twice daily with food if you have pain, for up to 3 days.",
+      "howToTake": [
+        "amoxicillin: 1 capsule, twice daily (after meals)",
+        "ibuprofen: 1 tablet, twice daily (with food)"
+      ],
+      "seeADoctorIf": [
+        "You get a rash, swelling, or trouble breathing after a new medicine.",
+        "Symptoms get worse instead of better.",
+        "You cannot read the dose and nobody can confirm it."
+      ]
+    }
+  }
+]
